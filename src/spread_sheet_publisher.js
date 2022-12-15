@@ -173,6 +173,7 @@ function resetProperties () { // eslint-disable-line no-unused-vars
   resetPropTargetSpreadsheet()
   resetPropFirst()
   resetPropSrcSheets()
+  resetPropForceReplaceSheet()
 }
 
 /**
@@ -272,4 +273,13 @@ function propForceReplaceSheet () {
  */
 function setPropForceReplaceSheet (forceReplaceSheet) {
   return PropertiesService.getUserProperties().setProperty('forceReplaceSheet', JSON.stringify(forceReplaceSheet))
+}
+
+/**
+ * Sheet を常に置き換えるか否かの設定を property から削除する
+ *
+ * @returns {boolean}
+ */
+function resetPropForceReplaceSheet () {
+  return PropertiesService.getUserProperties().deleteProperty('forceReplaceSheet')
 }

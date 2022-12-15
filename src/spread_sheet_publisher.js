@@ -17,7 +17,7 @@ function register ({ // eslint-disable-line no-unused-vars
   if (typeof targetId === 'undefined') {
     lazylog('Missing target Spreadsheet ID with register() function')
   } else {
-   setPropTargetSpreadsheet(targetId)
+    setPropTargetSpreadsheet(targetId)
   }
   if (sheetNames && sheetNamesExistOrNot(sheetNames)) setPropSrcSheets(sheetNames)
   setPropFirst(!append)
@@ -51,10 +51,10 @@ function sheetNamesExistOrNot (givenSheetNames) {
  */
 function addPublisherMenu () {
   SpreadsheetApp.getUi()
-  .createMenu('Publisher')
-  .addItem('Publish', 'SpreadsheetPublisher.copySheets')
-  .addItem('Reset properties', 'SpreadsheetPublisher.resetProperties')
-  .addToUi()
+    .createMenu('Publisher')
+    .addItem('Publish', 'SpreadsheetPublisher.copySheets')
+    .addItem('Reset properties', 'SpreadsheetPublisher.resetProperties')
+    .addToUi()
 }
 
 /**
@@ -65,7 +65,7 @@ function addPublisherMenu () {
  */
 function lazylog (message) { // eslint-disable-line no-unused-vars
   SpreadsheetApp.getUi()
-  .alert(message)
+    .alert(message)
 }
 
 //
@@ -169,7 +169,7 @@ function reverseSheets (sheets) {
  *
  * @returns {void}
  */
-function resetProperties () {
+function resetProperties () { // eslint-disable-line no-unused-vars
   resetPropTargetSpreadsheet()
   resetPropFirst()
   resetPropSrcSheets()

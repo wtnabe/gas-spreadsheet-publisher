@@ -251,6 +251,13 @@ function resetPropSrcSheets () {
 }
 
 /**
+ * Sheet を常に置き換えるか否かを property から返す
+ *
+ * <ul>
+ * <li>Sheet を置き換える方法はどんな変更も反映できるが、Sheet ID は変わってしまうので permalink として機能しなくなってしまう</li>
+ * <li>Sheet を置き換えずに内容だけコピーする方法は内容が「削減」された場合にそれを正確に反映することができない</li>
+ * </ul>
+ *
  * @returns {boolean}
  */
 function propForceReplaceSheet () {
@@ -258,7 +265,10 @@ function propForceReplaceSheet () {
 }
 
 /**
+ * Sheet を常に置き換える設定を property へ保存する
+ *
  * @param {boolean} forceReplaceSheet
+ * @returns {PropertyService.Properties}
  */
 function setPropForceReplaceSheet (forceReplaceSheet) {
   return PropertiesService.getUserProperties().setProperty('forceReplaceSheet', JSON.stringify(forceReplaceSheet))

@@ -27,11 +27,11 @@ open Script Editor
 
 ```javascript
 function onOpen () {
-  SpreadsheetPubliser.register(<target Spreadsheet ID>, [<src sheet>, <src sheet>, ..])
+  SpreadsheetPubliser.register({ targetId: <target Spreadsheet ID> })
 }
 ```
 
-If no `<src sheet>`s specified, all sheets will be copied.
+If no `<sheetNames>`s specified, all sheets will be copied.
 
 ### 3. Reload Spreadsheet
 

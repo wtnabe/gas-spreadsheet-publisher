@@ -5,11 +5,15 @@
  *
  * property への必要な値の保存とメニューの追加
  *
- * @param {string} targetId コピー先のSpreadsheet ID
- * @param {Array} sheetNames
- * @param {boolean} append 最後に置くか否か
+ * @param {object} param
+ * @param {string} param.targetId コピー先のSpreadsheet ID
+ * @param {Array} param.sheetNames
+ * @param {boolean} param.append 最後に置くか否か
+ * @param {boolean} param.forceReplaceSheet Sheetを強制的に置き換えるか
  */
-function register (targetId, sheetNames = undefined, append = false) { // eslint-disable-line no-unused-vars
+function register ({ // eslint-disable-line no-unused-vars
+  targetId, sheetNames = undefined, append = false, forceReplaceSheet = false
+} = {}) {
   if (typeof targetId === 'undefined') {
     lazylog('Missing target Spreadsheet ID with register() function')
   } else {
@@ -17,6 +21,7 @@ function register (targetId, sheetNames = undefined, append = false) { // eslint
   }
   if (sheetNames && sheetNamesExistOrNot(sheetNames)) setPropSrcSheets(sheetNames)
   setPropFirst(!append)
+  setPropForceReplaceSheet(forceReplaceSheet)
 
   addPublisherMenu()
 }
@@ -79,6 +84,7 @@ function copySheets () { // eslint-disable-line no-unused-vars
   const lastSheetPosInTarget = targetSpreadsheet.getSheets().length - 1
   const srcSpreadsheet = SpreadsheetApp.getActive()
   const first = propFirst()
+  const forceReplaceSheet = propForceReplaceSheet()
 
   let sheets = propSrcSheets() || srcSpreadsheet.getSheets()
   if (first) sheets = reverseSheets(sheets)
@@ -86,8 +92,9 @@ function copySheets () { // eslint-disable-line no-unused-vars
   sheets.forEach((sheet) => {
     copySheetToTarget(
       typeof sheet === 'string' ? srcSpreadsheet.getSheetByName(sheet) : sheet,
-      targetSpreadsheet)
-    if (first) {
+      targetSpreadsheet,
+      forceReplaceSheet)
+    if (first && forceReplaceSheet) {
       // targetSheets は変化しているので都度 getSheets() しないと存在
       // しない sheet へアクセスしようとしてしまう
       targetSpreadsheet.setActiveSheet(targetSpreadsheet.getSheets()[lastSheetPosInTarget])
@@ -99,24 +106,40 @@ function copySheets () { // eslint-disable-line no-unused-vars
 /**
  * 指定のシートを対象のSpreadsheetへコピーする
  *
- * 単純にコピーすると "Copy of ..." という名前になってしまうため、それ
- * を元のシートと同じになるように rename する。rename の際にすでに同名
- * のシートが存在するとエラーになるため、すでに存在している同名のシー
- * トは削除する。
+ * 対象の Sheet が存在しない場合は Sheet#copyTo を、すでに存在する場合は Range#copyTo を利用する。
+ * "Copy of ..." という名前は元の Sheet と同じになるように rename する
  *
  * @param {Sheet} srcSheet
  * @param {Spreadsheet} targetSpreadsheet Spreadsheet object
  */
-function copySheetToTarget (srcSheet, targetSpreadsheet) {
-  srcSheet.copyTo(targetSpreadsheet)
-
+function copySheetToTarget (srcSheet, targetSpreadsheet, forceReplaceSheet) {
   const targetSheet = targetSpreadsheet.getSheetByName(srcSheet.getName())
-  if (targetSheet) {
-    targetSpreadsheet.deleteSheet(targetSheet)
-  }
 
-  const copiedSheet = targetSpreadsheet.getSheetByName('Copy of ' + srcSheet.getName())
-  copiedSheet.setName(srcSheet.getName())
+  if (targetSheet) {
+    if (forceReplaceSheet) {
+      targetSpreadsheet.deleteSheet(targetSheet)
+      srcSheet.copyTo(targetSpreadsheet)
+      adjustCopiedSheetNameTo(targetSpreadsheet, srcSheet.getName())
+    } else {
+      const srcRange = srcSheet.getDataRange()
+      targetSheet.getRange(srcRange.getA1Notation()).setValues(srcRange.getValues())
+    }
+  } else {
+    srcSheet.copyTo(targetSpreadsheet)
+    adjustCopiedSheetNameTo(targetSpreadsheet, srcSheet.getName())
+  }
+}
+
+/**
+ * copyTo した sheet の名前を元の sheet の名前に戻す
+ *
+ * @param {Spreadsheet} targetSpreadsheet
+ * @param {string} srcSheetName
+ * @returns {Sheet}
+ */
+function adjustCopiedSheetNameTo(targetSpreadsheet, srcSheetName) {
+  const copiedSheet = targetSpreadsheet.getSheetByName('Copy of ' + srcSheetName)
+  return copiedSheet.setName(srcSheetName)
 }
 
 /**
@@ -225,4 +248,18 @@ function setPropSrcSheets (srcSheets) {
  */
 function resetPropSrcSheets () {
   return PropertiesService.getUserProperties().deleteProperty('srcSheets')
+}
+
+/**
+ * @returns {boolean}
+ */
+function propForceReplaceSheet () {
+  return JSON.parse(PropertiesService.getUserProperties().getProperty('forceReplaceSheet'))
+}
+
+/**
+ * @param {boolean} forceReplaceSheet
+ */
+function setPropForceReplaceSheet (forceReplaceSheet) {
+  return PropertiesService.getUserProperties().setProperty('forceReplaceSheet', JSON.stringify(forceReplaceSheet))
 }
